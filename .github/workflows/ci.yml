@@ -11,5 +11,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
+      - name: setup
+        run: npm install
       - name: style
         run: npm run fmt-check
