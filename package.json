@@ -1,24 +1,13 @@
 {
   "name": "null",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/main.ts",
+  "version": "0.10",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn src/main.ts",
     "fmt": "prettier --write .",
     "fmt-check": "prettier --check ."
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/xacrimon/null-bin.git"
-  },
-  "author": "Joel Wejdenstål",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/xacrimon/null-bin/issues"
-  },
-  "homepage": "https://github.com/xacrimon/null-bin#readme",
   "dependencies": {
     "better-sqlite3": "^7.5.1",
     "fastify": "^3.29.0"
