@@ -1,4 +1,4 @@
-import React from "react";
+import NavBar from "./components/NavBar";
 
 function App() {
   const style = {
@@ -7,7 +7,7 @@ function App() {
 
   return (
     <div style={style} className="App">
-      <h1>Hello World!</h1>
+      <NavBar />
     </div>
   );
 }
