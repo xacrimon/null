@@ -6,7 +6,7 @@ const db = openSqlite3("./null.dat");
 
 db.pragma("analysis_limit = 1000")
 db.pragma("automatic_index = false")
-db.pragma("busy_timeout = 10")
+db.pragma("busy_timeout = 1000")
 db.pragma("cache_size = -8192")
 db.pragma("journal_mode = wal")
 db.pragma("synchronous = normal")
