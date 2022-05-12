@@ -41,7 +41,14 @@ async function initialize() {
   });
 
   server.post("/api/paste/new", async (request, reply) => {
-    throw new Error("not implemented");
+    const payload = request.body as any;
+    const info = db.run(
+      "INSERT INTO pastes (title, content) VALUES (?, ?)",
+      payload.title,
+      payload.content
+    );
+    
+    reply.send({ id: info.lastInsertRowid });
   });
 
   server.get("/api/paste/raw/:id", async (request, reply) => {

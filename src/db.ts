@@ -1,4 +1,7 @@
-import openSqlite3, { Database as SQLiteHandle } from "better-sqlite3";
+import openSqlite3, {
+  Database as SQLiteHandle,
+  RunResult,
+} from "better-sqlite3";
 import fs from "fs";
 
 const busyTimeout = 1000;
@@ -30,6 +33,10 @@ export class Database {
 
   public get(sql: string, ...params: any[]): any {
     return this.getHandle().prepare(sql).get(params);
+  }
+
+  public run(sql: string, ...params: any[]): RunResult {
+    return this.getHandle().prepare(sql).run(params);
   }
 
   public getVersion(): number {
