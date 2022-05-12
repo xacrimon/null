@@ -50,6 +50,10 @@ export class Database {
     handle.pragma(`user_version = ${migration.version}`);
   }
 
+  public isHealthy(): boolean {
+    return this.handle != null;
+  }
+
   public close() {
     this.getHandle();
   }
