@@ -1,3 +1,5 @@
 /node_modules
 .DS_Store
 /null.dat
+/null.dat-shm
+/null.dat-wal
