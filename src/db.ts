@@ -45,7 +45,7 @@ export class Database {
   }
 
   public applyMigration(log: Logger, migration: Migration) {
-    log.info(`applying migration ${migration.filePath}`);
+    log.info(`applying migration ${migration.file}`);
     const handle = this.getHandle();
     handle.exec(migration.sql);
     handle.pragma(`user_version = ${migration.version}`);
@@ -62,7 +62,7 @@ export class Database {
 
 export type Migration = {
   version: number;
-  filePath: string;
+  file: string;
   sql: string;
 };
 
@@ -72,9 +72,8 @@ export function loadMigrations(): Migration[] {
 
   for (const file of fs.readdirSync(path)) {
     const version = parseInt(file);
-    const filePath = `${path}/${file}`;
     const sql = fs.readFileSync(`${path}/${file}`, "utf8");
-    migrations.push({ version, filePath, sql });
+    migrations.push({ version, file, sql });
   }
 
   return migrations;
