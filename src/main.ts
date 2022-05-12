@@ -1,6 +1,7 @@
 import fastify from "fastify";
 import { Database, loadMigrations } from "./db";
 import { registerRoutes } from "./api";
+import { log } from "./log";
 
 const closers: (() => void)[] = [];
 process.on("SIGINT", () =>
@@ -32,19 +33,16 @@ async function initialize() {
   migrations.sort((a, b) => a.version - b.version);
   for (const migration of migrations) {
     if (migration.version > db.getVersion()) {
-      db.applyMigration(migration);
+      db.applyMigration(log, migration);
     }
   }
 
-  const app = fastify();
+  const app = fastify({ logger: log });
   closers.push(() => app.close());
   registerRoutes(app, db);
-
-  app.listen(8080, (err, address) => {
+  app.listen(8080, (err) => {
     if (err != null) {
       shutdown(err.message, true);
     }
-
-    console.log(`server listening at ${address}`);
   });
 }

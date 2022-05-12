@@ -3,6 +3,7 @@ import openSqlite3, {
   RunResult,
 } from "better-sqlite3";
 import fs from "fs";
+import { Logger } from "pino";
 
 const busyTimeout = 1000;
 const analysisLimit = 1000;
@@ -43,8 +44,8 @@ export class Database {
     return this.getHandle().pragma("user_version", { simple: true });
   }
 
-  public applyMigration(migration: Migration) {
-    console.log(`applying migration ${migration.filePath}`);
+  public applyMigration(log: Logger, migration: Migration) {
+    log.info(`applying migration ${migration.filePath}`);
     const handle = this.getHandle();
     handle.exec(migration.sql);
     handle.pragma(`user_version = ${migration.version}`);
