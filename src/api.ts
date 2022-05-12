@@ -18,7 +18,9 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
       version: packageMetadata.version,
       serviceId: packageMetadata.name,
       description: packageMetadata.description,
-      notes: !isDBHealthy ? "database is not healthy" : undefined,
+      notes: isDBHealthy
+        ? "application status nominal"
+        : "application status degraded: database is not healthy",
       timestamp: Math.floor(new Date().getTime() / 1000),
       uptime: Math.floor(process.uptime()),
     };
