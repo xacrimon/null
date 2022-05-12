@@ -28,7 +28,9 @@ async function initialize() {
   closers.push(() => db.close());
 
   for (const migration of loadMigrations()) {
-    db.applyMigration(migration);
+    if (migration.version > db.getVersion()) {
+      db.applyMigration(migration);
+    }
   }
 
   const server = fastify();
