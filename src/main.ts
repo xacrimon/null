@@ -1,16 +1,16 @@
 import fastify from "fastify";
-import { Database } from "./db";
+import { Database, loadMigrations } from "./db";
 
 const closers: (() => void)[] = [];
 process.on("SIGINT", () =>
-  shutdown("Received SIGINT. Shutting down...", false)
+  shutdown("received sigint. shutting down...", false)
 );
 
 (async () => {
   try {
     await initialize();
   } catch (err: any) {
-    shutdown("Failed to initialize: " + err, true);
+    shutdown("failed to initialize: " + err, true);
   }
 })();
 
@@ -27,11 +27,15 @@ async function initialize() {
   const db = new Database("./null.dat");
   closers.push(() => db.close());
 
+  for (const migration of loadMigrations()) {
+    db.applyMigration(migration);
+  }
+
   const server = fastify();
   closers.push(() => server.close());
 
-  server.get("/", async (_, reply) => {
-    reply.send("Hello World!");
+  server.get("/ping", async (_, reply) => {
+    reply.send("pong");
   });
 
   server.post("/api/paste/new", async (request, reply) => {
@@ -43,7 +47,7 @@ async function initialize() {
     const row = db.get("SELECT title, content FROM pastes WHERE id = ?", id);
 
     if (row == undefined) {
-      reply.code(404).send("Paste not found");
+      reply.code(404).send("paste not found");
     } else {
       reply.send(row);
     }
@@ -54,6 +58,6 @@ async function initialize() {
       shutdown(err.message, true);
     }
 
-    console.log(`Server listening at ${address}`);
+    console.log(`server listening at ${address}`);
   });
 }
