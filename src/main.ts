@@ -1,5 +1,6 @@
 import fastify from "fastify";
 import { Database, loadMigrations } from "./db";
+import { registerRoutes } from "./api";
 
 const closers: (() => void)[] = [];
 process.on("SIGINT", () =>
@@ -27,42 +28,19 @@ async function initialize() {
   const db = new Database("./null.dat");
   closers.push(() => db.close());
 
-  for (const migration of loadMigrations()) {
+  const migrations = loadMigrations();
+  migrations.sort((a, b) => a.version - b.version);
+  for (const migration of migrations) {
     if (migration.version > db.getVersion()) {
       db.applyMigration(migration);
     }
   }
 
-  const server = fastify();
-  closers.push(() => server.close());
+  const app = fastify();
+  closers.push(() => app.close());
+  registerRoutes(app, db);
 
-  server.get("/ping", async (_, reply) => {
-    reply.send("pong");
-  });
-
-  server.post("/api/paste/new", async (request, reply) => {
-    const payload = request.body as any;
-    const info = db.run(
-      "INSERT INTO pastes (title, content) VALUES (?, ?)",
-      payload.title,
-      payload.content
-    );
-    
-    reply.send({ id: info.lastInsertRowid });
-  });
-
-  server.get("/api/paste/raw/:id", async (request, reply) => {
-    const id = (request.params as any).id as string;
-    const row = db.get("SELECT title, content FROM pastes WHERE id = ?", id);
-
-    if (row == undefined) {
-      reply.code(404).send("paste not found");
-    } else {
-      reply.send(row);
-    }
-  });
-
-  server.listen(8080, (err, address) => {
+  app.listen(8080, (err, address) => {
     if (err != null) {
       shutdown(err.message, true);
     }
