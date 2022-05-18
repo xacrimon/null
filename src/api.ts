@@ -42,7 +42,7 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     reply.send({ id: info.lastInsertRowid });
   });
 
-  app.get("/api/paste/:id", async (request, reply) => {
+  app.get("/api/paste/get/:id", async (request, reply) => {
     const id = (request.params as any).id as string;
     const row = db.get(
       "SELECT created, expiry, title, author, lang, content FROM pastes WHERE id = ? AND expiry > (SELECT strftime('%s', 'now'))",
