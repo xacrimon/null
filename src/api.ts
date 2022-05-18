@@ -42,6 +42,20 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     reply.send({ id: info.lastInsertRowid });
   });
 
+  app.get("/api/paste/:id", async (request, reply) => {
+    const id = (request.params as any).id as string;
+    const row = db.get(
+      "SELECT created, expiry, title, author, lang, content FROM pastes WHERE id = ? AND expiry > (SELECT strftime('%s', 'now'))",
+      id
+    );
+
+    if (row == undefined) {
+      reply.code(404).send("paste not found");
+    } else {
+      reply.send(row);
+    }
+  });
+
   app.get("/api/paste/raw/:id", async (request, reply) => {
     const id = (request.params as any).id as string;
     const row = db.get(
