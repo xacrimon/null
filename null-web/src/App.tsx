@@ -1,4 +1,5 @@
 import NavBar from "./components/NavBar";
+import Editor from "./components/Editor";
 
 function App() {
   const style = {
@@ -8,6 +9,7 @@ function App() {
   return (
     <div style={style} className="App">
       <NavBar />
+      <Editor />
     </div>
   );
 }
