@@ -31,7 +31,8 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
   app.post("/api/paste/new", async (request, reply) => {
     const payload = request.body as any;
     const info = db.run(
-      "INSERT INTO pastes (title, author, lang, content) VALUES (?, ?)",
+      "INSERT INTO pastes (created, expiry, title, author, lang, content) VALUES ((SELECT strftime('%s', 'now')), ?, ?, ?, ?, ?)",
+      payload.expiry,
       payload.title,
       payload.author,
       payload.lang,
@@ -44,14 +45,14 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
   app.get("/api/paste/raw/:id", async (request, reply) => {
     const id = (request.params as any).id as string;
     const row = db.get(
-      "SELECT title, author, lang, content FROM pastes WHERE id = ?",
+      "SELECT content FROM pastes WHERE id = ? AND expiry > (SELECT strftime('%s', 'now'))",
       id
     );
 
     if (row == undefined) {
       reply.code(404).send("paste not found");
     } else {
-      reply.send(row);
+      reply.send(row.content);
     }
   });
 }
