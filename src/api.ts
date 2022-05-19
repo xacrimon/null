@@ -29,21 +29,7 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     reply.type("application/health+json").code(statusCode).send(healthData);
   });
 
-  app.post("/api/paste/new", async (request, reply) => {
-    const payload = request.body as any;
-    const info = db.run(
-      "INSERT INTO pastes (created, expiry, title, author, lang, content) VALUES ((SELECT strftime('%s', 'now')), ?, ?, ?, ?, ?)",
-      payload.expiry,
-      payload.title,
-      payload.author,
-      payload.lang,
-      payload.content
-    );
-
-    reply.send({ id: info.lastInsertRowid });
-  });
-
-  app.get("/api/auth/cycleKeys", async (request, reply) => {
+  app.post("/api/auth/cycleKeys", async (request, reply) => {
     const refreshToken = (request.params as any).refreshToken;
     const row = db.get(
       "SELECT account_id from refresh_tokens WHERE token = ?",
@@ -56,6 +42,20 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     const claims = { accountId: row.account_id };
     const [jwt, newToken] = await cycleKeys(db, claims, refreshToken);
     return { jwt, refreshToken: newToken };
+  });
+
+  app.post("/api/paste/new", async (request, reply) => {
+    const payload = request.body as any;
+    const info = db.run(
+      "INSERT INTO pastes (created, expiry, title, author, lang, content) VALUES ((SELECT strftime('%s', 'now')), ?, ?, ?, ?, ?)",
+      payload.expiry,
+      payload.title,
+      payload.author,
+      payload.lang,
+      payload.content
+    );
+
+    reply.send({ id: info.lastInsertRowid });
   });
 
   app.get("/api/paste/get/:id", async (request, reply) => {
