@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Database } from "./db";
 import fs from "fs";
+import { cycleKeys } from "./session";
 
 export function registerRoutes(app: FastifyInstance, db: Database) {
   app.get("/ping", async (_, reply) => {
@@ -40,6 +41,21 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     );
 
     reply.send({ id: info.lastInsertRowid });
+  });
+
+  app.get("/api/auth/cycleKeys", async (request, reply) => {
+    const refreshToken = (request.params as any).refreshToken;
+    const row = db.get(
+      "SELECT account_id from refresh_tokens WHERE token = ?",
+      refreshToken
+    );
+    if (row == undefined) {
+      throw new Error("invalid refresh token");
+    }
+
+    const claims = { accountId: row.account_id };
+    const [jwt, newToken] = await cycleKeys(db, claims, refreshToken);
+    return { jwt, refreshToken: newToken };
   });
 
   app.get("/api/paste/get/:id", async (request, reply) => {

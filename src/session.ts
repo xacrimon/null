@@ -75,5 +75,5 @@ export async function cycleKeys(
 }
 
 export async function verifyKey(jwt: string): Promise<Claims> {
-  return await jwtVerify(jwt, signingSecret, verifyOptions);
+  return jwtVerify(jwt, signingSecret, verifyOptions);
 }
