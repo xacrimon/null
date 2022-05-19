@@ -12,6 +12,17 @@ const cacheSize = -8192;
 const journalMode = "wal";
 const synchronous = "normal";
 
+type VariableArgFunction = (...params: any[]) => any;
+type ArgumentTypes<F extends VariableArgFunction> = F extends (
+  ...args: infer A
+) => any
+  ? A
+  : never;
+
+interface Transaction<F extends VariableArgFunction> {
+  (...params: ArgumentTypes<F>): ReturnType<F>;
+}
+
 export class Database {
   private handle: SQLiteHandle | null;
 
@@ -38,6 +49,10 @@ export class Database {
 
   public run(sql: string, ...params: any[]): RunResult {
     return this.getHandle().prepare(sql).run(params);
+  }
+
+  public transaction<F extends VariableArgFunction>(fn: F): Transaction<F> {
+    return this.getHandle().transaction(fn);
   }
 
   public getVersion(): number {
