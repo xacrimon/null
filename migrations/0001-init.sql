@@ -1,11 +1,16 @@
 CREATE TABLE pastes (
     id INTEGER PRIMARY KEY,
+    author_account INTEGER NOT NULL,
     created INTEGER NOT NULL,
     expiry INTEGER,
     title TEXT,
-    author TEXT,
     lang TEXT NOT NULL,
     content TEXT NOT NULL
+);
+
+CREATE TABLE saved_pastes (
+    paste_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL
 );
 
 CREATE TABLE accounts (
