@@ -9,7 +9,7 @@ import { createEditor } from "slate";
 import { Slate, Editable, withReact } from "slate-react";
 
 // TypeScript users only add this code
-import { BaseEditor, Descendant } from "slate";
+import { BaseEditor, Descendant, Node } from "slate";
 import { ReactEditor } from "slate-react";
 
 type CustomElement = { type: "paragraph"; children: CustomText[] };
@@ -30,7 +30,11 @@ const initialValue: Descendant[] = [
   },
 ];
 
-function App() {
+function serialize(value: Descendant[]): string {
+  return value.map((node) => Node.string(node)).join("\n");
+}
+
+function Editor() {
   const [editor] = useState(() => withReact(createEditor()));
 
   return (
@@ -40,4 +44,4 @@ function App() {
   );
 }
 
-export default App;
+export default Editor;
