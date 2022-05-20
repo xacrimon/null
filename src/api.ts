@@ -30,6 +30,10 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     reply.type("application/health+json").code(statusCode).send(healthData);
   });
 
+  app.post("/api/account/create", async (request, reply) => {
+    throw new Error("not implemented")
+  })
+
   app.post("/api/auth/login", async (request, reply) => {
     let payload = request.body as any;
     const row = db.get(
@@ -53,7 +57,7 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
 
     const claims = { accountId: row.account_id };
     const [jwt, newToken] = await cycleKeys(db, claims, refreshToken);
-    return { jwt, refreshToken: newToken };
+    reply.send({ jwt, refreshToken: newToken });
   });
 
   app.post("/api/paste/new", async (request, reply) => {
