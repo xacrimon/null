@@ -2,6 +2,7 @@ import fastify from "fastify";
 import { Database, loadMigrations } from "./db";
 import { registerRoutes } from "./api";
 import { log } from "./log";
+import cookie from "@fastify/cookie";
 
 const closers: (() => void)[] = [];
 process.on("SIGINT", () =>
@@ -39,6 +40,7 @@ async function initialize() {
 
   const app = fastify({ logger: log });
   closers.push(() => app.close());
+  app.register(cookie);
   registerRoutes(app, db);
   app.listen(8080, (err) => {
     if (err != null) {

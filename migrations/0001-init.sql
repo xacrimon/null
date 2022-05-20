@@ -1,5 +1,5 @@
 CREATE TABLE pastes (
-    id INTEGER NOT NULL PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     author_id INTEGER NOT NULL,
     created INTEGER NOT NULL,
     expiry INTEGER,
@@ -18,7 +18,7 @@ CREATE TABLE saved_pastes (
 CREATE INDEX saved_pastes_account_id_index ON saved_pastes (account_id);
 
 CREATE TABLE accounts (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     email TEXT NOT NULL,
     public_email TEXT,

@@ -1,7 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { Database } from "./db";
 import fs from "fs";
-import { cycleKeys } from "./session";
+import { cycleKeys, issueKeys } from "./session";
+import { createLocalIdentity, verifyLocalIdentity } from "./localIdentity";
 
 export function registerRoutes(app: FastifyInstance, db: Database) {
   app.get("/ping", async (_, reply) => {
@@ -29,10 +30,21 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     reply.type("application/health+json").code(statusCode).send(healthData);
   });
 
+  app.post("/api/auth/login", async (request, reply) => {
+    let payload = request.body as any;
+    const row = db.get(
+      "SELECT id FROM accounts WHERE username = ?",
+      payload.username
+    );
+    verifyLocalIdentity(db, row.id, payload.password);
+    const claims = { accountId: row.id };
+    const [jwt, refreshToken] = await issueKeys(db, claims);
+  });
+
   app.post("/api/auth/cycleKeys", async (request, reply) => {
     const refreshToken = (request.params as any).refreshToken;
     const row = db.get(
-      "SELECT account_id from refresh_tokens WHERE token = ?",
+      "SELECT account_id FROM refresh_tokens WHERE token = ?",
       refreshToken
     );
     if (row == undefined) {

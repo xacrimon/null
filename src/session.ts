@@ -36,8 +36,6 @@ function generateRefreshToken(): string {
   return crypto.randomBytes(16).toString("hex");
 }
 
-// TODO: - configure signing options & claims
-
 export async function issueKeys(
   db: Database,
   claims: Claims
