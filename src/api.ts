@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Database } from "./db";
 import fs from "fs";
-import { cycleKeys, issueKeys } from "./session";
+import { cycleKeys, issueKeys, verifyKey } from "./session";
 import { createLocalIdentity, verifyLocalIdentity } from "./localIdentity";
 
 export function registerRoutes(app: FastifyInstance, db: Database) {
@@ -31,8 +31,22 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
   });
 
   app.post("/api/account/create", async (request, reply) => {
-    throw new Error("not implemented")
-  })
+    let payload = request.body as any;
+    const accountId = db.transaction(() => {
+      db.run(
+        "INSERT INTO accounts (username, email) VALUES (?, ?)",
+        payload.username,
+        payload.email
+      );
+      const row = db.get(
+        "SELECT id FROM accounts WHERE rowid = last_insert_rowid()"
+      );
+      return row.id as number;
+    });
+
+    createLocalIdentity(db, accountId, payload.password);
+    reply.send({ success: true });
+  });
 
   app.post("/api/auth/login", async (request, reply) => {
     let payload = request.body as any;
@@ -40,9 +54,12 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
       "SELECT id FROM accounts WHERE username = ?",
       payload.username
     );
+
     verifyLocalIdentity(db, row.id, payload.password);
     const claims = { accountId: row.id };
     const [jwt, refreshToken] = await issueKeys(db, claims);
+    reply.cookie("Bearer", jwt);
+    reply.send({ refreshToken });
   });
 
   app.post("/api/auth/cycleKeys", async (request, reply) => {
@@ -57,27 +74,38 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
 
     const claims = { accountId: row.account_id };
     const [jwt, newToken] = await cycleKeys(db, claims, refreshToken);
-    reply.send({ jwt, refreshToken: newToken });
+    reply.cookie("Bearer", jwt);
+    reply.send({ refreshToken: newToken });
   });
 
   app.post("/api/paste/new", async (request, reply) => {
     const payload = request.body as any;
-    const info = db.run(
-      "INSERT INTO pastes (created, expiry, title, author, lang, content) VALUES ((SELECT strftime('%s', 'now')), ?, ?, ?, ?, ?)",
-      payload.expiry,
-      payload.title,
-      payload.author,
-      payload.lang,
-      payload.content
-    );
+    const claims = await verifyKey(request.cookies["Bearer"]);
 
-    reply.send({ id: info.lastInsertRowid });
+    const id = db.transaction(() => {
+      db.run(
+        "INSERT INTO pastes (author_id, created, expiry, title, lang, content) VALUES (?, (SELECT strftime('%s', 'now')), ?, ?, ?, ?)",
+        claims.accountId,
+        payload.expiry,
+        payload.title,
+        payload.lang,
+        payload.content
+      );
+
+      const row = db.get(
+        "SELECT id FROM pastes WHERE rowid = last_insert_rowid()"
+      );
+
+      return row.id as number;
+    });
+
+    reply.send({ id });
   });
 
   app.get("/api/paste/get/:id", async (request, reply) => {
     const id = (request.params as any).id as string;
     const row = db.get(
-      "SELECT created, expiry, title, author, lang, content FROM pastes WHERE id = ? AND expiry > (SELECT strftime('%s', 'now'))",
+      "SELECT author_id, created, expiry, title, lang, content FROM pastes WHERE id = ? AND expiry > (SELECT strftime('%s', 'now'))",
       id
     );
 
