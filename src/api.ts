@@ -126,7 +126,7 @@ export function registerRoutes(app: FastifyInstance, db: Database) {
     if (row == undefined) {
       reply.code(404).send("paste not found");
     } else {
-      reply.send(row.content);
+      reply.type("text/plain").send(row.content);
     }
   });
 }
